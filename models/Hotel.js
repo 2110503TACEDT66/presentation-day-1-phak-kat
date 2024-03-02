@@ -26,7 +26,7 @@ const HotelSchema = new mongoose.Schema({
     price: {
         type: String
     },
-    capicityPerRoom: {
+    capacityPerRoom: {
         type: String
     }
 },
