@@ -24,10 +24,10 @@ const HotelSchema = new mongoose.Schema({
         type: String
     },
     price: {
-        type: BigInt
+        type: String
     },
     capicityPerRoom: {
-        type: BigInt
+        type: String
     }
 },
 {
