@@ -3,7 +3,7 @@ const Hotel = require('../models/Hotel');
 
 //@desc    Get all bookings
 //@route   GET /api/v1/bookings
-//@access  Public
+//@access  Private
 exports.getBookings = async (req, res, next) => {
     let query;
 
@@ -82,7 +82,7 @@ exports.getBooking = async (req, res, next) => {
 
 //@desc     Add Booking
 //@route    POST /api/v1/holtel/:hotelId/booking
-//@access   Public
+//@access   Private
 exports.addBooking = async (req, res, next) => {
     try {
         req.body.hotel = req.params.hotelId;
