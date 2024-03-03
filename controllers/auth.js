@@ -107,7 +107,18 @@ exports.googleCallBack = async (req, res) => {
         let user = await User.findOne({ googleId: id });
         
         if (user) {
-            return res.redirect('/');
+            const token = user.getSignedJwtToken();
+
+            const options = {
+                expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRE*24*60*60*1000),
+                httpOnly: true
+            };
+
+            if (process.env.NODE_ENV === 'production'){
+                options.secure = true;
+            }
+
+            return res.cookie('token', token, options).redirect('/');
         }
     
         user = await User.findOne({ email: emails[0].value });
@@ -120,8 +131,19 @@ exports.googleCallBack = async (req, res) => {
         const hashedPassword = await bcrypt.hash(randomPassword, 10);
     
         user = await User.create({ name: `${givenName} ${familyName}`, email: emails[0].value, googleId: id, password: hashedPassword });
-    
-        res.redirect('/');
+        
+        const token = user.getSignedJwtToken();
+
+        const options = {
+            expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRE*24*60*60*1000),
+            httpOnly: true
+        };
+
+        if (process.env.NODE_ENV === 'production'){
+            options.secure = true;
+        }
+
+        return res.cookie('token', token, options).redirect('/');
     } catch (err) {
         console.error('Error handling Google callback:', err);
         res.redirect("/google");
