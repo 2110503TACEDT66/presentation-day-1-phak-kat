@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const bcrypt = require('bcryptjs');
 
 //@desc    Register user
 //@route   POST /api/v1/auth/register
@@ -31,18 +32,18 @@ exports.login = async (req, res, next) => {
     if (!email || !password){
         return res.status(400).json({success: false, msg: 'Please provide an email and password'});
     }
-
+    
     //check user
     const user = await User.findOne({email}).select('+password');
     if (!user){
-        return res.status(400).json({success: false, msg: 'Invalid credentials'});
+        return res.status(400).json({success: false, msg: 'Invalid credentials No user'});
     }
 
     //check password
     const isMatch = await user.matchPassword(password);
 
     if (!isMatch){
-        return res.status(401).json({success: false, msg: 'Invalid credentials'});
+        return res.status(401).json({success: false, msg: 'Invalid credentials Wrong password'});
     }
 
     //create token
@@ -94,4 +95,35 @@ exports.logout = async(req,res,next) => {
         data: {},
         msg: "Logout Successfully"
     });
+}
+
+exports.googleCallBack = async (req, res) => {
+    try {
+        const { id, name, emails } = req.user;
+    
+        const givenName = name?.givenName || '';
+        const familyName = name?.familyName || '';
+    
+        let user = await User.findOne({ googleId: id });
+        
+        if (user) {
+            return res.redirect('/');
+        }
+    
+        user = await User.findOne({ email: emails[0].value });
+    
+        if (user) {
+            return res.redirect('/');
+        }
+    
+        const randomPassword = Math.random().toString(36).slice(-8);
+        const hashedPassword = await bcrypt.hash(randomPassword, 10);
+    
+        user = await User.create({ name: `${givenName} ${familyName}`, email: emails[0].value, googleId: id, password: hashedPassword });
+    
+        res.redirect('/');
+    } catch (err) {
+        console.error('Error handling Google callback:', err);
+        res.redirect("/google");
+    }    
 }
